@@ -1,0 +1,32 @@
+{
+    "name": "aeon",
+    "homepage": "https://github.com/khrome/aeon",
+    "version": "0.0.1-beta",
+    "main": "aeon.js",
+    "description": "Yet another formal OO library to groan about.",
+    "keywords": [
+        "objects"
+    ],
+    "author": "Abbey Hawk Sparrow <@khrome> (http://patternweaver.com)",
+    "contributors": [],
+    "bugs": {
+        "url": "https://github.com/khrome/aeon/issues"
+    },
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/khrome/aeon.git"
+    },
+    "dependencies": {
+        "async-arrays" : "*",
+        "async-objects" : "*"
+    },
+    "devDependencies": {
+        "mocha": "*",
+        "chai": "*"
+    },
+    "optionalDependencies": {},
+    "engines": {
+        "node": "*"
+    }
+}
