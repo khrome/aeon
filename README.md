@@ -4,7 +4,7 @@ Yet another object wrapper for the type of formal OO that makes Doug Crockford t
 
 Usage
 -----
-If you can't read code, don't. This is not for you.
+don't.
 
 Enjoy,
 

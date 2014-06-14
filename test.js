@@ -66,8 +66,24 @@ describe('objects', function(){
         
     });
     
-    describe('private interface', function(){ });
-    describe('protected interface', function(){ });
+    describe('private interface', function(){
+        it('members are present on instances, but not the object', function(){
+            var definition = ß();
+            definition.Public.proxy = function(){
+                return this.test();
+            };
+            definition.Private.test = function(){
+                return 'blah';
+            };
+            var MyClass = definition.ÆON();
+            var myInstance = new MyClass();
+            console.log('TTT', myInstance.proxy());
+        });
+    });
+    
+    describe('protected interface', function(){
+        
+    });
     describe('performance', function(){
         //todo: performance comparison simple objects
         //todo: performance 2-level inheritance

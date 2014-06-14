@@ -50,7 +50,10 @@ var basis = function(options){
         
         var pubFinal;
         var pubStatic;
+        var priFinal;
+        var priStatic;
         
+        //PUBLIC
         processClassDefinition(this.Public, function(options, fields, fieldsStatic, fieldsFinal, fieldsStaticFinal){
             //members
             objects.forEach(fieldsFinal, function(value, name){
@@ -73,15 +76,67 @@ var basis = function(options){
             }
         });
         
+        var allMembers = [];
+        var isInternal = function(){
+            var context = arguments.callee.caller;
+            var parentContext = context.arguments.callee.caller;
+            var result = ( allMembers.indexOf(context) == -1 ) && 
+                         ( allMembers.indexOf(parentContext) == -1 );
+            console.log(
+                'testing private',
+                allMembers.indexOf(context) == -1,
+                allMembers.indexOf(parentContext) == -1
+            );
+            return result;
+        };
+        
+        //PRIVATE
+        //*
+        processClassDefinition(this.Private, function(options, fields, fieldsStatic, fieldsFinal, fieldsStaticFinal){
+            //members
+            objects.forEach(fields, function(value, name){
+                lines.push(
+                    'Object.defineProperty(this, "'+name+'", { '+
+                    'writable: false, value: value , get:function(){ '+
+                        'var isIn = isInternal(); '+
+                        'console.log("is?", isIn); '+
+                        'return isIn?this.["private_'+name+'"]:undefined; '+
+                    '}});'
+                );
+            });
+            
+            /*priFinal = function(ob){
+                objects.forEach(fields, function(value, name){
+                    ob.prototype[name] = value;
+                });
+            };*/
+            
+            //statics
+            /*priStatic = function(ob){
+                objects.forEach(fieldsStatic, function(value, name){
+                    Object.defineProperty(ob, name, { value: value });
+                });
+                objects.forEach(fieldsStaticFinal, function(value, name){
+                    Object.defineProperty(ob, name, { writable: false, value: value });
+                });
+            }*/
+        }); //*/
+        
         if(lines.length){
-            if(options.implicitSuper && this.Extends) lines.unshift('superClass.apply(this, arguments)');
+            if(basisOptions.implicitSuper && this.Extends) lines.unshift('superClass.apply(this, arguments)');
             if(constructor) lines.push('constructor.apply(this, arguments)');
+            console.log(lines.join("\n"));
             ob = new Function('options', lines.join("\n"));
         }else{
             ob = construct || function(){};
         }
         if(pubFinal) pubFinal(ob);
         if(pubStatic) pubStatic(ob);
+        if(priFinal) priFinal(ob);
+        if(priStatic) priStatic(ob);
+        allMembers = objects.map(ob, function(value, field){
+            
+        })
         return ob;
     };
 }
