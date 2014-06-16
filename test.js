@@ -77,7 +77,8 @@ describe('objects', function(){
             };
             var MyClass = definition.ÆON();
             var myInstance = new MyClass();
-            console.log('TTT', myInstance.proxy());
+            should.not.exist(myInstance.test);
+            myInstance.proxy().should.equal('blah');
         });
     });
     

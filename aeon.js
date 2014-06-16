@@ -42,11 +42,14 @@ var basis = function(options){
         Static : {Final:{}}
     };
     this.ÆON = function(options){ //create class from definition
-        
         var lines = [];
         var construct = basisOptions.construct;
         var superClass = this.Extends;
         var ob;
+        var anchor = {};
+        var object_definition = this;
+        var privates = {};
+        var allMembers = [];
         
         var pubFinal;
         var pubStatic;
@@ -58,10 +61,12 @@ var basis = function(options){
             //members
             objects.forEach(fieldsFinal, function(value, name){
                 lines.push('Object.defineProperty(this, "'+name+'", { writable: false, value: value });');
+                allMembers.push(value);
             });
             
             pubFinal = function(ob){
                 objects.forEach(fields, function(value, name){
+                    allMembers.push(value);
                     ob.prototype[name] = value;
                 });
             }
@@ -69,24 +74,19 @@ var basis = function(options){
             pubStatic = function(ob){
                 objects.forEach(fieldsStatic, function(value, name){
                     Object.defineProperty(ob, name, { value: value });
+                    allMembers.push(value);
                 });
                 objects.forEach(fieldsStaticFinal, function(value, name){
                     Object.defineProperty(ob, name, { writable: false, value: value });
+                    allMembers.push(value);
                 });
             }
         });
         
-        var allMembers = [];
         var isInternal = function(){
-            var context = arguments.callee.caller;
+            var context = arguments.callee.caller;//.arguments.callee.caller;
             var parentContext = context.arguments.callee.caller;
-            var result = ( allMembers.indexOf(context) == -1 ) && 
-                         ( allMembers.indexOf(parentContext) == -1 );
-            console.log(
-                'testing private',
-                allMembers.indexOf(context) == -1,
-                allMembers.indexOf(parentContext) == -1
-            );
+            var result = allMembers.indexOf(parentContext) != -1;
             return result;
         };
         
@@ -95,13 +95,15 @@ var basis = function(options){
         processClassDefinition(this.Private, function(options, fields, fieldsStatic, fieldsFinal, fieldsStaticFinal){
             //members
             objects.forEach(fields, function(value, name){
+                lines.push('allMembers.push(object_definition.Private["'+name+'"]);');
+                lines.push('privates["'+name+'"] = object_definition.Private["'+name+'"];');
                 lines.push(
-                    'Object.defineProperty(this, "'+name+'", { '+
-                    'writable: false, value: value , get:function(){ '+
-                        'var isIn = isInternal(); '+
-                        'console.log("is?", isIn); '+
-                        'return isIn?this.["private_'+name+'"]:undefined; '+
-                    '}});'
+                    'Object.defineProperty(this, "'+name+'", { '+"\n"+
+                    '    get:function(){ '+"\n"+
+                    '        var isIn = isInternal(); '+"\n"+
+                    //'        console.log("is?", isIn); '+"\n"+
+                    '        return isIn?privates["'+name+'"]:undefined; '+"\n"+
+                    '    }, set : function(value){ privates["'+name+'"] = value; } });'
                 );
             });
             
@@ -125,8 +127,9 @@ var basis = function(options){
         if(lines.length){
             if(basisOptions.implicitSuper && this.Extends) lines.unshift('superClass.apply(this, arguments)');
             if(constructor) lines.push('constructor.apply(this, arguments)');
-            console.log(lines.join("\n"));
-            ob = new Function('options', lines.join("\n"));
+            // Wrap everything with some error handling
+            lines.unshift('try{'); lines.push('}catch(ex){ console.log("ERRRRR", ex); }');
+            eval('ob = function(options){'+lines.join("\n")+'};');
         }else{
             ob = construct || function(){};
         }
@@ -134,9 +137,7 @@ var basis = function(options){
         if(pubStatic) pubStatic(ob);
         if(priFinal) priFinal(ob);
         if(priStatic) priStatic(ob);
-        allMembers = objects.map(ob, function(value, field){
-            
-        })
+        allMembers.push(ob);
         return ob;
     };
 }
